@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MottuApi.Data;
 using MottuApi.Models;
 using System.Threading.Tasks;
-
+ 
 namespace MottuApi.Controllers
 {
     /// <summary>
@@ -14,12 +14,12 @@ namespace MottuApi.Controllers
     public class PatiosController : ControllerBase
     {
         private readonly AppDbContext _context;
-
+ 
         public PatiosController(AppDbContext context)
         {
             _context = context;
         }
-
+ 
         /// <summary>
         /// Retorna uma lista paginada de p�tios.
         /// </summary>
@@ -34,7 +34,7 @@ namespace MottuApi.Controllers
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-
+ 
             var items = patios.Select(p => new
             {
                 p.Id,
@@ -47,10 +47,10 @@ namespace MottuApi.Controllers
                     new { rel = "delete", href = Url.Action(nameof(Delete), new { id = p.Id }) }
                 }
             });
-
+ 
             return Ok(new { total, page, pageSize, items });
         }
-
+ 
         /// <summary>
         /// Retorna um p�tio pelo seu identificador.
         /// </summary>
@@ -63,7 +63,7 @@ namespace MottuApi.Controllers
             if (patio == null) return NotFound();
             return Ok(patio);
         }
-
+ 
         /// <summary>
         /// Cria um novo p�tio.
         /// </summary>
@@ -76,7 +76,7 @@ namespace MottuApi.Controllers
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new { id = patio.Id }, patio);
         }
-
+ 
         /// <summary>
         /// Atualiza um p�tio existente.
         /// </summary>
@@ -86,18 +86,16 @@ namespace MottuApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Patio patio)
         {
-            if (id != patio.Id) return BadRequest("IDs diferentes.");
-
             var existente = await _context.Patios.FindAsync(id);
             if (existente == null) return NotFound();
-
+ 
             existente.Nome = patio.Nome;
             existente.Localizacao = patio.Localizacao;
-
+ 
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(existente);
         }
-
+ 
         /// <summary>
         /// Exclui um p�tio pelo id.
         /// </summary>
@@ -108,7 +106,7 @@ namespace MottuApi.Controllers
         {
             var patio = await _context.Patios.FindAsync(id);
             if (patio == null) return NotFound();
-
+ 
             _context.Patios.Remove(patio);
             await _context.SaveChangesAsync();
             return NoContent();
