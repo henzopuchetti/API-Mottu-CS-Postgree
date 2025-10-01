@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MottuApi.Data;
 using MottuApi.Models;
-
+ 
 namespace MottuApi.Controllers
 {
     /// <summary>
@@ -13,12 +13,12 @@ namespace MottuApi.Controllers
     public class MotosController : ControllerBase
     {
         private readonly AppDbContext _context;
-
+ 
         public MotosController(AppDbContext context)
         {
             _context = context;
         }
-
+ 
         /// <summary>
         /// Retorna uma lista paginada de motos.
         /// </summary>
@@ -33,7 +33,7 @@ namespace MottuApi.Controllers
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-
+ 
             var items = motos.Select(m => new
             {
                 m.Id,
@@ -49,10 +49,10 @@ namespace MottuApi.Controllers
                     new { rel = "delete", href = Url.Action(nameof(Delete), new { id = m.Id }) }
                 }
             });
-
+ 
             return Ok(new { total, page, pageSize, items });
         }
-
+ 
         /// <summary>
         /// Retorna uma moto pelo seu identificador.
         /// </summary>
@@ -65,7 +65,7 @@ namespace MottuApi.Controllers
             if (moto == null) return NotFound();
             return Ok(moto);
         }
-
+ 
         /// <summary>
         /// Busca uma moto pela placa.
         /// </summary>
@@ -78,7 +78,7 @@ namespace MottuApi.Controllers
             if (moto == null) return NotFound();
             return Ok(moto);
         }
-
+ 
         /// <summary>
         /// Cria uma nova moto.
         /// </summary>
@@ -89,12 +89,12 @@ namespace MottuApi.Controllers
         {
             if (string.IsNullOrWhiteSpace(moto.Placa))
                 return BadRequest("Placa obrigatória.");
-
+ 
             _context.Motos.Add(moto);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new { id = moto.Id }, moto);
         }
-
+ 
         /// <summary>
         /// Atualiza uma moto existente.
         /// </summary>
@@ -104,21 +104,19 @@ namespace MottuApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Moto moto)
         {
-            if (id != moto.Id) return BadRequest("IDs diferentes.");
-
             var existente = await _context.Motos.FindAsync(id);
             if (existente == null) return NotFound();
-
+ 
             existente.Placa = moto.Placa;
             existente.Status = moto.Status;
             existente.Patio = moto.Patio;
             existente.DataEntrada = moto.DataEntrada;
             existente.DataSaida = moto.DataSaida;
-
+ 
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(existente);
         }
-
+ 
         /// <summary>
         /// Exclui uma moto pelo id.
         /// </summary>
@@ -129,7 +127,7 @@ namespace MottuApi.Controllers
         {
             var moto = await _context.Motos.FindAsync(id);
             if (moto == null) return NotFound();
-
+ 
             _context.Motos.Remove(moto);
             await _context.SaveChangesAsync();
             return NoContent();
