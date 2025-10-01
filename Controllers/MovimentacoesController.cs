@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MottuApi.Data;
 using MottuApi.Models;
 using System.Threading.Tasks;
-
+ 
 namespace MottuApi.Controllers
 {
     /// <summary>
@@ -14,12 +14,12 @@ namespace MottuApi.Controllers
     public class MovimentacoesController : ControllerBase
     {
         private readonly AppDbContext _context;
-
+ 
         public MovimentacoesController(AppDbContext context)
         {
             _context = context;
         }
-
+ 
         /// <summary>
         /// Retorna uma lista paginada de movimenta��es.
         /// </summary>
@@ -36,7 +36,7 @@ namespace MottuApi.Controllers
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-
+ 
             var items = movimentacoes.Select(m => new
             {
                 m.Id,
@@ -53,10 +53,10 @@ namespace MottuApi.Controllers
                     new { rel = "delete", href = Url.Action(nameof(Delete), new { id = m.Id }) }
                 }
             });
-
+ 
             return Ok(new { total, page, pageSize, items });
         }
-
+ 
         /// <summary>
         /// Retorna uma movimenta��o pelo seu identificador.
         /// </summary>
@@ -69,11 +69,11 @@ namespace MottuApi.Controllers
                 .Include(m => m.Moto)
                 .Include(m => m.Patio)
                 .FirstOrDefaultAsync(m => m.Id == id);
-
+ 
             if (movimentacao == null) return NotFound();
             return Ok(movimentacao);
         }
-
+ 
         /// <summary>
         /// Cria uma nova movimenta��o.
         /// </summary>
@@ -86,7 +86,7 @@ namespace MottuApi.Controllers
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new { id = movimentacao.Id }, movimentacao);
         }
-
+ 
         /// <summary>
         /// Atualiza uma movimenta��o existente.
         /// </summary>
@@ -96,20 +96,18 @@ namespace MottuApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Movimentacao movimentacao)
         {
-            if (id != movimentacao.Id) return BadRequest("IDs diferentes.");
-
             var existente = await _context.Movimentacoes.FindAsync(id);
             if (existente == null) return NotFound();
-
+ 
             existente.MotoId = movimentacao.MotoId;
             existente.PatioId = movimentacao.PatioId;
             existente.DataEntrada = movimentacao.DataEntrada;
             existente.DataSaida = movimentacao.DataSaida;
-
+ 
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(existente);
         }
-
+ 
         /// <summary>
         /// Exclui uma movimenta��o pelo id.
         /// </summary>
@@ -120,7 +118,7 @@ namespace MottuApi.Controllers
         {
             var movimentacao = await _context.Movimentacoes.FindAsync(id);
             if (movimentacao == null) return NotFound();
-
+ 
             _context.Movimentacoes.Remove(movimentacao);
             await _context.SaveChangesAsync();
             return NoContent();
