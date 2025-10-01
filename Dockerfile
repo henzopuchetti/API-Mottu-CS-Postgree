@@ -1,23 +1,31 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# ---------- STAGE: build ----------
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /src
 
+# Copiar csproj e restaurar
 COPY ["MottuApi.csproj", "."]
 RUN dotnet restore MottuApi.csproj
 
-COPY . .
+# Copiar resto do código
+COPY . . 
 
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
-
+# Publicar em Release
 RUN dotnet publish MottuApi.csproj -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# ---------- STAGE: runtime ----------
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
 
-USER app
+# Criar usuário sem privilégios
+RUN addgroup -S appgroup && adduser -S -G appgroup appuser
 
-COPY --from=build /app/publish .
+# Copiar build da stage anterior
+COPY --from=build /app/publish ./
 
+# Rodar como usuário não-root
+USER appuser
+
+# Definir URL da API e expor porta
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
